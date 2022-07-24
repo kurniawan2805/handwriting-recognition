@@ -7,4 +7,4 @@ Model berbasis tensorflow untuk mengekstrak text pada gambar tulisan tangan.
 - [Github Handwriting Recognition Example](https://github.com/keras-team/keras-io/blob/master/examples/vision/handwriting_recognition.py)
 
 ## Demo Handwriting Recognition Streamlit
-- [Streamlit App](https://novrii-ml-app-up-st-wrmbup.streamlitapp.com/){:target="_blank"}
+- [Streamlit App](https://novrii-ml-app-up-st-wrmbup.streamlitapp.com/)
