@@ -8,3 +8,16 @@ Model berbasis tensorflow untuk mengekstrak text pada gambar tulisan tangan.
 
 ## Demo Handwriting Recognition Streamlit
 - [Streamlit App](https://novrii-ml-app-up-st-wrmbup.streamlitapp.com/)
+
+## Streamlit App
+
+Things to install
+```
+packages.txt
+requirements.txt
+```
+
+Main App
+```
+app.py
+```
