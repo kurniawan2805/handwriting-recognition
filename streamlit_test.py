@@ -79,9 +79,6 @@ characters = set()
 characters = [' ', "'", '-', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'] 
 max_str_len = 16 # max length of input labels
 num_of_characters = len(characters) + 1 # +1 for ctc pseudo blank
-num_of_timestamps = 32 # max length of predicted labels
-
-
 
 # from  tensorflow.keras.layers.experimental.preprocessing import StringLookup
 # Convert characters to integers.
@@ -130,7 +127,7 @@ def load_image(image_file):
 def draw_canvas():
     with st.container():
     # with col1:
-        st.write('Drawing Canvas')
+        st.write('Tulis nama Anda di Canvas dengan huruf kapital!')
         # canvas_result = create_canvas(realtime_update)
         scale = 3
         # Specify canvas parameters in application
@@ -179,7 +176,7 @@ def draw_canvas():
                 except Exception:
                     pass
 def upload_image():
-    image_file = st.file_uploader("Upload test dataset image", type=['jpg', 'png', 'jpeg']) # streamlit utk upload gambar dengan tipe yang telah ditentukan
+    image_file = st.file_uploader("Upload gambar tulisan", type=['jpg', 'png', 'jpeg']) # streamlit utk upload gambar dengan tipe yang telah ditentukan
     if not image_file: # jika tidak gambar upload, maka output tidak ada
         return None
     if image_file is not None:
@@ -216,6 +213,8 @@ def upload_image():
 def main():
 
     st.title('Handwriting Recognition')
+    st.write('Aplikasi untuk mendeteksi teks gambar tulisan tangan')
+ 
     st.sidebar.title('Navigate')
     navigation_mode = st.sidebar.radio('', ['Upload Image', 'Draw Canvas'])
 
