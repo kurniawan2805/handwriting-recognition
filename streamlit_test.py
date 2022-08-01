@@ -22,7 +22,45 @@ from tensorflow import keras
 from keras.models import load_model
 
 
-# example of saving an image with the Keras API
+st.markdown(
+    """
+<style>
+.reportview-container .markdown-text-container {
+    font-family: monospace;
+}
+.sidebar .sidebar-content {
+    background-image: linear-gradient(#2e7bcf,#2e7bcf);
+    color: white;
+}
+.Widget>label {
+    color: white;
+    font-family: monospace;
+}
+[class^="st-b"]  {
+    color: white;
+    font-family: monospace;
+}
+.st-bb {
+    background-color: transparent;
+}
+.st-at {
+    background-color: #0c0080;
+}
+footer {
+    font-family: monospace;
+}
+.reportview-container .main footer, .reportview-container .main footer a {
+    color: #0c0080;
+}
+header .decoration {
+    background-image: none;
+}
+
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
 
 #model parameter
 batch_size = 64
@@ -31,16 +69,19 @@ image_width = 256
 image_height = 64
 max_len = 32
 
-model_path = "ohr_test.h5"
+model_path = "model_tuned.h5"
 prediction_model = load_model(model_path, compile=False)
 
 test=pd.read_csv('written_name_test_v2.csv')
+test['IDENTITY']=test['IDENTITY'].str.upper()
 
 characters = set()
 characters = [' ', "'", '-', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'] 
-max_str_len = 24 # max length of input labels
+max_str_len = 16 # max length of input labels
 num_of_characters = len(characters) + 1 # +1 for ctc pseudo blank
 num_of_timestamps = 32 # max length of predicted labels
+
+
 
 # from  tensorflow.keras.layers.experimental.preprocessing import StringLookup
 # Convert characters to integers.
@@ -55,10 +96,7 @@ num_to_char = tf.keras.layers.StringLookup(
 def distortion_free_resize(image, img_size):
     w, h = img_size
     image = tf.image.resize_with_pad(image, h, w)
-
-    # Check the amount of padding needed to be done.
-#     pad_height = h - tf.shape(image)[0]
-#     pad_width = w - tf.shape(image)[1]
+    pad_width = w - tf.shape(image)[1]
 
     image = tf.transpose(image, perm=[1, 0, 2])
     image = tf.image.flip_left_right(image)
@@ -89,12 +127,7 @@ def load_image(image_file):
 	img = Image.open(image_file)
 	return img
 
-def main():
-
-    st.title('Handwritting Recognition')
-    # realtime_update = st.checkbox("Update in realtime", True)
-    
-    # col1, col2 = st.columns(2)
+def draw_canvas():
     with st.container():
     # with col1:
         st.write('Drawing Canvas')
@@ -116,13 +149,13 @@ def main():
             key="canvas",
         )
     # with col2:
-    show_results = st.button('Show Results')
+    show_results = st.button('Predict Text!')
     if show_results:
         with st.container():
             if canvas_result is not None:
                 try:
                     # # "Hello World" mm
-                    image_re = canvas_result.image_data[:, :, 1] #grayscale image
+                    image_re = canvas_result.image_data[:, :, 1]
                     # image_re = image_re.astype(float) // 255
                     im = Image.fromarray(image_re.astype('uint8'))
                     # save_img("test.png", image_data)
@@ -135,30 +168,29 @@ def main():
                     
                     batch_images[0]=image
                     x=prediction_model.predict(batch_images)
-		
-		    st.write('Drawn Image (Scaled)')
-                    st.image("test.jpg", width=256)
                     pred_texts = decode_batch_predictions(x)
+
+                    st.write('Drawn Image (Scaled)')
+                    st.image("test.jpg", width=256)
+
                     pred_text = pred_texts[0]
                     st.write('Predicted Text:',pred_text)
 
                 except Exception:
                     pass
-
-    model = tf.keras.models.load_model('model_tuned.h5', compile=False) # load model yang sudah di latih
-
-    image_file = st.file_uploader("Upload Your Image", type=['jpg', 'png', 'jpeg']) # streamlit utk upload gambar dengan tipe yang telah ditentukan
+def upload_image():
+    image_file = st.file_uploader("Upload test dataset image", type=['jpg', 'png', 'jpeg']) # streamlit utk upload gambar dengan tipe yang telah ditentukan
     if not image_file: # jika tidak gambar upload, maka output tidak ada
         return None
-    
     if image_file is not None:
+
         # To See details
         file_details = {"filename":image_file.name, "filetype":image_file.type,
                         "filesize":image_file.size}
         st.write(file_details)
 
         # To View Uploaded Image
-#         st.image(load_image(image_file),width=256)
+        # st.image(load_image(image_file),width=256)
 
         with open(os.path.join("test3.jpg"),"wb") as f:
             f.write((image_file).getbuffer())
@@ -171,11 +203,29 @@ def main():
         pred_texts = decode_batch_predictions(x)
         pred_text = pred_texts[0]
 
-        st.text(f"Image Handwriting") # menampilkan teks
-        st.image([image_file]) # menampilkan gambar
-        st.text(f"Predicted text: {pred_text}") # menampilkan teks dan hasil yang telah dikonversi ke tulisan
-        truth = test.loc[test['FILENAME']==image_file.name ].IDENTITY.iat[0]
-        st.text(f"Ground truth: {truth}")
+        # st.text(f"Image Handwriting") # menampilkan teks
+        with st.container():
+            st.image(image_file, width=256) # menampilkan gambar
+            st.text(f"Predicted text: {pred_text}") # menampilkan teks dan hasil yang telah dikonversi ke tulisan
+            # check if label exist
+            res = test.isin([image_file.name]).any().any()
+            if res:
+                truth = test.loc[test['FILENAME']==image_file.name ].IDENTITY.iat[0]
+                st.text(f"Ground truth: {truth}")
+
+def main():
+
+    st.title('Handwriting Recognition')
+    st.sidebar.title('Navigate')
+    navigation_mode = st.sidebar.radio('', ['Upload Image', 'Draw Canvas'])
+
+    if navigation_mode == 'Draw Canvas':
+        draw_canvas()
+    if navigation_mode == 'Upload Image':
+        upload_image()        
 
 if __name__ == '__main__':
+    
+    
+
     main()
