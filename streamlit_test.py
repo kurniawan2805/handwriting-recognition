@@ -99,7 +99,7 @@ def main():
     # with col1:
         st.write('Drawing Canvas')
         # canvas_result = create_canvas(realtime_update)
-        scale = 1
+        scale = 3
         # Specify canvas parameters in application
         stroke_width = 2
         stroke_color = "Black"
@@ -122,7 +122,7 @@ def main():
             if canvas_result is not None:
                 try:
                     # # "Hello World" mm
-                    image_re = canvas_result.image_data[:, :, 1]
+                    image_re = canvas_result.image_data[:, :, 1] #grayscale image
                     # image_re = image_re.astype(float) // 255
                     im = Image.fromarray(image_re.astype('uint8'))
                     # save_img("test.png", image_data)
@@ -132,12 +132,12 @@ def main():
                     # process img
                     batch_images=np.ones((batch_size,256,64,1),dtype=np.float32)
                     image = preprocess_image("test.jpg")
-
-                    st.write('Drawn Image (Scaled)')
-                    st.image("test.jpg")
                     
                     batch_images[0]=image
                     x=prediction_model.predict(batch_images)
+		
+		    st.write('Drawn Image (Scaled)')
+                    st.image("test.jpg", width=256)
                     pred_texts = decode_batch_predictions(x)
                     pred_text = pred_texts[0]
                     st.write('Predicted Text:',pred_text)
@@ -152,14 +152,13 @@ def main():
         return None
     
     if image_file is not None:
-
         # To See details
         file_details = {"filename":image_file.name, "filetype":image_file.type,
                         "filesize":image_file.size}
         st.write(file_details)
 
         # To View Uploaded Image
-        st.image(load_image(image_file),width=256)
+#         st.image(load_image(image_file),width=256)
 
         with open(os.path.join("test3.jpg"),"wb") as f:
             f.write((image_file).getbuffer())
@@ -174,7 +173,7 @@ def main():
 
         st.text(f"Image Handwriting") # menampilkan teks
         st.image([image_file]) # menampilkan gambar
-        st.text(f"Probably the result: {pred_text}") # menampilkan teks dan hasil yang telah dikonversi ke tulisan
+        st.text(f"Predicted text: {pred_text}") # menampilkan teks dan hasil yang telah dikonversi ke tulisan
         truth = test.loc[test['FILENAME']==image_file.name ].IDENTITY.iat[0]
         st.text(f"Ground truth: {truth}")
 
